@@ -1,24 +1,18 @@
-# energy-n14-e13-mtt-balance-detection-training
+<!--
+ * @Author      : Mr.bin
+ * @Date        : 2023-06-16 21:20:48
+ * @LastEditTime: 2023-06-16 22:21:27
+ * @Description : energy-n14-e13-mtt-balance-detection-training
+-->
 
-## Project setup
-```
-npm install
-```
+# 平衡测试与康复训练系统-单机版
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+## 串口定义
 
-### Compiles and minifies for production
-```
-npm run build
-```
+- 第一位代表 x 轴，第二位代表 y 轴
+- 前、右为正，左后为负
+- 0.1 秒发一次数据
 
-### Lints and fixes files
-```
-npm run lint
-```
+## 蓝牙名称
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+- 636PHT
