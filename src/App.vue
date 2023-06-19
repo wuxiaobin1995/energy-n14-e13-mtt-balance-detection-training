@@ -1,32 +1,39 @@
+<!--
+ * @Author      : Mr.bin
+ * @Date        : 2023-06-16 21:20:25
+ * @LastEditTime: 2023-06-19 21:20:11
+ * @Description : 根组件
+-->
 <template>
   <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
-    </div>
-    <router-view/>
+    <router-view />
   </div>
 </template>
 
-<style lang="scss">
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-}
+<script>
+export default {
+  name: 'App',
 
-#nav {
-  padding: 30px;
+  created() {
+    this.initLocalStorage()
+  },
 
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
+  methods: {
+    /**
+     * @description: 软件启动后，初始化localStorage的一些值
+     */
+    initLocalStorage() {
+      /* 初始化边界圆半径值 */
+      if (!window.localStorage.getItem('boundaryAngle')) {
+        window.localStorage.setItem('boundaryAngle', 12)
+      }
+      /* 初始化API的IP地址 */
+      if (!window.localStorage.getItem('mttIP')) {
+        window.localStorage.setItem('mttIP', '192.168.1.150')
+      }
     }
   }
 }
-</style>
+</script>
+
+<style lang="scss" scoped></style>
