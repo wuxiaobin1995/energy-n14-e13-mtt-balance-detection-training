@@ -1,7 +1,7 @@
 <!--
  * @Author      : Mr.bin
  * @Date        : 2023-06-19 20:25:51
- * @LastEditTime: 2023-06-19 20:41:32
+ * @LastEditTime: 2023-06-20 17:30:56
  * @Description : 顶部栏
 -->
 <template>
@@ -44,13 +44,13 @@
         <div class="item">{{ activeUserName }}</div>
         <i class="el-icon-user"></i>
       </div>
-    </div>
 
-    <!-- 蓝牙连接状态 -->
-    <div class="bluetooth">
-      蓝牙连接状态：{{
-        this.$store.state.isBluetooth === true ? '已连接【√】' : '已断开【×】'
-      }}
+      <!-- 蓝牙连接状态 -->
+      <div class="bluetooth">
+        蓝牙连接状态：{{
+          this.$store.state.isBluetooth === true ? '已连接【√】' : '已断开【×】'
+        }}
+      </div>
     </div>
 
     <!-- logo -->
@@ -346,6 +346,7 @@ export default {
     .bluetooth {
       margin-left: 20px;
       @include flex(row, center, center);
+      font-size: 22px;
     }
   }
 
