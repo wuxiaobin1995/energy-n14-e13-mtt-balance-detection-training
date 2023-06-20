@@ -1,7 +1,7 @@
 /*
  * @Author      : Mr.bin
  * @Date        : 2023-06-16 21:20:25
- * @LastEditTime: 2023-06-19 21:58:28
+ * @LastEditTime: 2023-06-20 11:43:50
  * @Description : 路由
  */
 import Vue from 'vue'
@@ -72,6 +72,51 @@ const routes = [
         name: 'balance-measure',
         component: () => import('@/views/test-mode/balance/measure'),
         meta: ['平衡测试-具体测量']
+      },
+      // 本体感觉平衡测试-具体测量
+      {
+        path: 'proprioception-balance-measure',
+        name: 'proprioception-balance-measure',
+        component: () =>
+          import('@/views/test-mode/proprioception-balance/measure'),
+        meta: ['本体感觉平衡测试-具体测量']
+      },
+      // 左右平衡测试-具体测量
+      {
+        path: 'lr-balance-measure',
+        name: 'lr-balance-measure',
+        component: () => import('@/views/test-mode/lr-balance/measure'),
+        meta: ['左右平衡测试-具体测量']
+      },
+      // 前后平衡测试-具体测量
+      {
+        path: 'fb-balance-measure',
+        name: 'fb-balance-measure',
+        component: () => import('@/views/test-mode/fb-balance/measure'),
+        meta: ['前后平衡测试-具体测量']
+      },
+      // 对角线平衡测试-具体测量
+      {
+        path: 'diagonal-balance-measure',
+        name: 'diagonal-balance-measure',
+        component: () => import('@/views/test-mode/diagonal-balance/measure'),
+        meta: ['对角线平衡测试-具体测量']
+      },
+
+      /* 训练 */
+      // 圆环保持训练-具体测量
+      {
+        path: 'ring-hold-measure',
+        name: 'ring-hold-measure',
+        component: () => import('@/views/train-mode/ring-hold/measure'),
+        meta: ['圆环保持训练-具体测量']
+      },
+      // 圆圈保持训练-具体测量
+      {
+        path: 'circle-hold-measure',
+        name: 'circle-hold-measure',
+        component: () => import('@/views/train-mode/circle-hold/measure'),
+        meta: ['圆圈保持训练-具体测量']
       }
     ]
   },

@@ -1,36 +1,30 @@
 <!--
  * @Author      : Mr.bin
- * @Date        : 2023-06-19 21:59:05
- * @LastEditTime: 2023-06-20 09:34:59
- * @Description : 平衡测试-具体测量
+ * @Date        : 2023-06-20 10:14:53
+ * @LastEditTime: 2023-06-20 10:20:04
+ * @Description : 圆圈保持训练-具体测量
 -->
 <template>
-  <div class="balance-measure">
+  <div class="circle-hold-measure">
     <div class="wrapper">
       <!-- 语音播放 -->
       <audio ref="audio" controls="controls" hidden :src="audioSrc" />
 
       <!-- 标题 -->
-      <div class="title">平衡测试</div>
+      <div class="title">圆圈保持训练</div>
 
       <!-- 提示 -->
-      <div class="tip">请双腿平稳站立在平台上，等待倒计时结束。</div>
+      <div class="tip">
+        请双腿平稳站立在平台上，在规定的范围内，控制重心做训练。
+      </div>
 
       <!-- 主体 -->
       <div class="main">
-        <!-- 参数 -->
-        <div class="parameter">
-          <div class="parameter__visual">
-            视觉反馈：{{ isVisual === true ? '有' : '无' }}
-          </div>
-          <div class="parameter__barycenter">
-            重心轨迹：{{ isBarycenter === true ? '有' : '无' }}
-          </div>
-          <div class="parameter__time">测试时长：{{ time }}秒</div>
-        </div>
+        <!-- 占位 -->
+        <div class="perch"></div>
 
         <!-- 图形区 -->
-        <div class="chart" v-show="isVisual">
+        <div class="chart">
           <div id="chart" :style="{ width: '100%', height: '100%' }"></div>
         </div>
 
@@ -45,11 +39,11 @@
       <div class="btn">
         <el-button
           class="item"
-          type="primary"
           round
+          type="primary"
           @click="handleStart"
           :disabled="isStart"
-          >开始测量</el-button
+          >开始训练</el-button
         >
         <el-button class="item" type="info" @click="handleRefresh"
           >刷新页面</el-button
@@ -74,13 +68,13 @@ import Readline from '@serialport/parser-readline'
 import { setCircle } from '@/utils/setCircle.js'
 
 export default {
-  name: 'balance-measure',
+  name: 'circle-hold-measure',
 
   data() {
     return {
       /* 语音相关 */
       audioOpen: this.$store.state.voiceSwitch,
-      audioSrc: path.join(__static, `narrate/mandarin/Test/平衡测试.mp3`),
+      audioSrc: path.join(__static, `narrate/mandarin/Train/圆圈保持训练.mp3`),
 
       /* 控制类 */
       isStart: false, // 是否开始
@@ -96,10 +90,11 @@ export default {
 
       /* 其他 */
       timeClock: null, // 倒计时计时器
-      time: this.$store.state.settings[0].time, // 倒计时（测试时长）
+      time: this.$store.state.settings[0].time, // 倒计时（训练时长）
       nowTime: this.$store.state.settings[0].time, // 实时倒计时
-      isVisual: this.$store.state.settings[0].isVisual, // 是否开启视觉反馈
-      isBarycenter: this.$store.state.settings[0].isBarycenter, // 是否开启重心轨迹
+      circle: this.$store.state.settings[0].circle, // 圆圈半径
+      xAxis: this.$store.state.settings[0].xAxis, // x轴坐标
+      yAxis: this.$store.state.settings[0].yAxis, // y轴坐标
 
       xStandard: null,
       yStandard: null,
@@ -232,10 +227,8 @@ export default {
 
                 this.trackArray.push([xCalibration, yCalibration])
 
-                if (this.isBarycenter) {
-                  this.option.series[0].data = this.trackArray
-                  this.myChart.setOption(this.option)
-                }
+                this.option.series[0].data = this.trackArray
+                this.myChart.setOption(this.option)
               }
             })
           } else {
@@ -283,16 +276,8 @@ export default {
       ) // 最大角度
 
       const borderRound = setCircle(0, 0, boundaryAngle) // 边界圆
-      const oneRound = setCircle(
-        0,
-        0,
-        parseFloat((boundaryAngle / 4).toFixed(2))
-      ) // 第一个圆
-      const twoRound = setCircle(
-        0,
-        0,
-        parseFloat((boundaryAngle / 2).toFixed(2))
-      ) // 第二个圆
+
+      const round = setCircle(this.xAxis, this.yAxis, this.circle) // 圆圈
 
       this.myChart = this.$echarts.init(
         document.getElementById('chart'),
@@ -330,14 +315,13 @@ export default {
             show: false
           }
         },
-        // tooltip: {},
         series: [
           // 重心移动轨迹
           {
             type: 'line',
             name: '重心移动轨迹',
             data: [],
-            color: 'red',
+            color: 'orange',
             smooth: true,
             showSymbol: false
           },
@@ -350,21 +334,12 @@ export default {
             smooth: true,
             showSymbol: false
           },
-          // 第一个圆
+          // 圆圈
           {
             type: 'line',
-            name: '第一个圆',
-            data: oneRound,
+            name: '圆圈',
+            data: round,
             color: 'green',
-            smooth: true,
-            showSymbol: false
-          },
-          // 第二个圆
-          {
-            type: 'line',
-            name: '第二个圆',
-            data: twoRound,
-            color: 'blue',
             smooth: true,
             showSymbol: false
           }
@@ -402,10 +377,11 @@ export default {
       this.$store.dispatch('setSettings', settings).then(() => {
         /* 数据 */
         const obj = {
-          pattern: '平衡测试',
-          time: this.time, // 测试时长
-          isVisual: this.isVisual, // 是否开启视觉反馈
-          isBarycenter: this.isBarycenter, // 是否开启重心轨迹
+          pattern: '圆圈保持训练',
+          time: this.time, // 训练时长
+          circle: this.circle, // 圆圈半径
+          xAxis: this.xAxis, // x轴坐标
+          yAxis: this.yAxis, // y轴坐标
           trackArray: this.trackArray // 轨迹数组
         }
 
@@ -451,20 +427,11 @@ export default {
         // 下一项
         let route = ''
         switch (this.$store.state.settings[0].pattern) {
-          case '平衡测试':
-            route = 'balance-measure'
+          case '圆环保持训练':
+            route = 'ring-hold-measure'
             break
-          case '本体感觉平衡测试':
-            route = 'proprioception-balance-measure'
-            break
-          case '左右平衡测试':
-            route = 'lr-balance-measure'
-            break
-          case '前后平衡测试':
-            route = 'fb-balance-measure'
-            break
-          case '对角线平衡测试':
-            route = 'diagonal-balance-measure'
+          case '圆圈保持训练':
+            route = 'circle-hold-measure'
             break
           default:
             break
@@ -476,7 +443,7 @@ export default {
       } else {
         // 完成订单
         this.$router.push({
-          path: '/test-send'
+          path: '/train-send'
         })
       }
     },
@@ -488,7 +455,7 @@ export default {
       this.$router.push({
         path: '/refresh',
         query: {
-          routerName: JSON.stringify('/balance-measure'),
+          routerName: JSON.stringify('/circle-hold-measure'),
           duration: JSON.stringify(300)
         }
       })
@@ -498,7 +465,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.balance-measure {
+.circle-hold-measure {
   width: 100%;
   height: 100%;
   @include flex(row, center, center);
@@ -528,20 +495,10 @@ export default {
     .main {
       flex: 1;
       @include flex(row, space-between, center);
-      // 参数
-      .parameter {
+
+      // 占位
+      .perch {
         width: 20%;
-        .parameter__visual {
-          font-size: 22px;
-        }
-        .parameter__barycenter {
-          margin-top: 100px;
-          font-size: 22px;
-        }
-        .parameter__time {
-          margin-top: 100px;
-          font-size: 22px;
-        }
       }
 
       // 图形区

@@ -1,17 +1,17 @@
 <!--
  * @Author      : Mr.bin
  * @Date        : 2023-06-19 21:59:05
- * @LastEditTime: 2023-06-20 09:34:59
- * @Description : 平衡测试-具体测量
+ * @LastEditTime: 2023-06-20 11:38:57
+ * @Description : 本体感觉平衡测试-具体测量
 -->
 <template>
-  <div class="balance-measure">
+  <div class="proprioception-balance-measure">
     <div class="wrapper">
       <!-- 语音播放 -->
       <audio ref="audio" controls="controls" hidden :src="audioSrc" />
 
       <!-- 标题 -->
-      <div class="title">平衡测试</div>
+      <div class="title">本体感觉平衡测试</div>
 
       <!-- 提示 -->
       <div class="tip">请双腿平稳站立在平台上，等待倒计时结束。</div>
@@ -74,13 +74,16 @@ import Readline from '@serialport/parser-readline'
 import { setCircle } from '@/utils/setCircle.js'
 
 export default {
-  name: 'balance-measure',
+  name: 'proprioception-balance-measure',
 
   data() {
     return {
       /* 语音相关 */
       audioOpen: this.$store.state.voiceSwitch,
-      audioSrc: path.join(__static, `narrate/mandarin/Test/平衡测试.mp3`),
+      audioSrc: path.join(
+        __static,
+        `narrate/mandarin/Test/本体感觉平衡测试.mp3`
+      ),
 
       /* 控制类 */
       isStart: false, // 是否开始
@@ -402,7 +405,7 @@ export default {
       this.$store.dispatch('setSettings', settings).then(() => {
         /* 数据 */
         const obj = {
-          pattern: '平衡测试',
+          pattern: '本体感觉平衡测试',
           time: this.time, // 测试时长
           isVisual: this.isVisual, // 是否开启视觉反馈
           isBarycenter: this.isBarycenter, // 是否开启重心轨迹
@@ -488,7 +491,7 @@ export default {
       this.$router.push({
         path: '/refresh',
         query: {
-          routerName: JSON.stringify('/balance-measure'),
+          routerName: JSON.stringify('/proprioception-balance-measure'),
           duration: JSON.stringify(300)
         }
       })
@@ -498,7 +501,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.balance-measure {
+.proprioception-balance-measure {
   width: 100%;
   height: 100%;
   @include flex(row, center, center);
