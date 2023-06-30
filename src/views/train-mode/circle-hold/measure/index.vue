@@ -1,7 +1,7 @@
 <!--
  * @Author      : Mr.bin
  * @Date        : 2023-06-20 10:14:53
- * @LastEditTime: 2023-06-20 10:20:04
+ * @LastEditTime: 2023-06-30 21:44:44
  * @Description : 圆圈保持训练-具体测量
 -->
 <template>
@@ -376,13 +376,18 @@ export default {
       settings.shift()
       this.$store.dispatch('setSettings', settings).then(() => {
         /* 数据 */
+        const res = this.calculate()
         const obj = {
           pattern: '圆圈保持训练',
           time: this.time, // 训练时长
           circle: this.circle, // 圆圈半径
           xAxis: this.xAxis, // x轴坐标
           yAxis: this.yAxis, // y轴坐标
-          trackArray: this.trackArray // 轨迹数组
+          trackArray: this.trackArray, // 轨迹数组
+          boundaryAngle: res.boundaryAngle, // 最大角度
+          borderRound: res.borderRound, // 边界圆
+          round: res.round, // 圆圈
+          score: res.score // 综合得分
         }
 
         /* 暂存至 sessionStorage */
@@ -459,6 +464,49 @@ export default {
           duration: JSON.stringify(300)
         }
       })
+    },
+
+    /**
+     * @description: 计算各种数值逻辑函数
+     */
+    calculate() {
+      /* 背景参考曲线 */
+      const boundaryAngle = parseFloat(
+        window.localStorage.getItem('boundaryAngle')
+      ) // 最大角度
+
+      const borderRound = setCircle(0, 0, boundaryAngle) // 边界圆
+
+      const round = setCircle(this.xAxis, this.yAxis, this.circle) // 圆圈
+
+      /* 计算综合得分和评价 */
+      const trackArray = this.trackArray
+
+      const yesArray = [] // 圆圈内
+      for (let i = 0; i < trackArray.length; i++) {
+        const x = trackArray[i][0]
+        const y = trackArray[i][1]
+        const r = parseFloat(
+          Math.sqrt(
+            Math.abs(Math.pow(x - this.xAxis, 2) + Math.pow(y - this.yAxis, 2))
+          ).toFixed(2)
+        )
+        if (r <= this.circle) {
+          yesArray.push(r)
+        }
+      }
+      const score = parseInt(
+        ((yesArray.length / trackArray.length) * 100).toFixed(0)
+      )
+
+      /* 返回结果 */
+      return {
+        boundaryAngle,
+        borderRound,
+        round,
+
+        score
+      }
     }
   }
 }

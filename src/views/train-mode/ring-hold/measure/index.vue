@@ -1,7 +1,7 @@
 <!--
  * @Author      : Mr.bin
  * @Date        : 2023-06-20 09:23:17
- * @LastEditTime: 2023-06-20 09:29:36
+ * @LastEditTime: 2023-06-30 21:45:56
  * @Description : 圆环保持训练-具体测量
 -->
 <template>
@@ -385,12 +385,19 @@ export default {
       settings.shift()
       this.$store.dispatch('setSettings', settings).then(() => {
         /* 数据 */
+        const res = this.calculate()
         const obj = {
           pattern: '圆环保持训练',
           time: this.time, // 训练时长
           smallCircle: this.smallCircle, // 小圆半径
           bigCircle: this.bigCircle, // 大圆半径
-          trackArray: this.trackArray // 轨迹数组
+          trackArray: this.trackArray, // 轨迹数组
+          trackArray: this.trackArray, // 轨迹数组
+          boundaryAngle: res.boundaryAngle, // 最大角度
+          borderRound: res.borderRound, // 边界圆
+          smallRound: res.smallRound, // 小圆
+          bigRound: res.bigRound, // 大圆
+          score: res.score // 综合得分
         }
 
         /* 暂存至 sessionStorage */
@@ -467,6 +474,49 @@ export default {
           duration: JSON.stringify(300)
         }
       })
+    },
+
+    /**
+     * @description: 计算各种数值逻辑函数
+     */
+    calculate() {
+      /* 背景参考曲线 */
+      const boundaryAngle = parseFloat(
+        window.localStorage.getItem('boundaryAngle')
+      ) // 最大角度
+
+      const borderRound = setCircle(0, 0, boundaryAngle) // 边界圆
+
+      const smallRound = setCircle(0, 0, this.smallCircle) // 小圆
+      const bigRound = setCircle(0, 0, this.bigCircle) // 大圆
+
+      /* 计算综合得分和评价 */
+      const trackArray = this.trackArray
+
+      const yesArray = [] // 圆环内
+      for (let i = 0; i < trackArray.length; i++) {
+        const x = trackArray[i][0]
+        const y = trackArray[i][1]
+        const r = parseFloat(
+          Math.sqrt(Math.abs(Math.pow(x, 2) + Math.pow(y, 2))).toFixed(2)
+        )
+        if (r >= this.smallCircle && r <= this.bigCircle) {
+          yesArray.push(r)
+        }
+      }
+      const score = parseInt(
+        ((yesArray.length / trackArray.length) * 100).toFixed(0)
+      )
+
+      /* 返回结果 */
+      return {
+        boundaryAngle,
+        borderRound,
+        smallRound,
+        bigRound,
+
+        score
+      }
     }
   }
 }

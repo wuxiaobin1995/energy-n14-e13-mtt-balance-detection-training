@@ -1,7 +1,7 @@
 <!--
  * @Author      : Mr.bin
  * @Date        : 2023-06-20 11:40:04
- * @LastEditTime: 2023-06-20 11:46:25
+ * @LastEditTime: 2023-06-30 21:35:55
  * @Description : 左右平衡测试-具体测量
 -->
 <template>
@@ -388,12 +388,18 @@ export default {
       settings.shift()
       this.$store.dispatch('setSettings', settings).then(() => {
         /* 数据 */
+        const res = this.calculate()
         const obj = {
           pattern: '左右平衡测试',
           time: this.time, // 测试时长
           isVisual: this.isVisual, // 是否开启视觉反馈
           isBarycenter: this.isBarycenter, // 是否开启重心轨迹
-          trackArray: this.trackArray // 轨迹数组
+          trackArray: this.trackArray, // 轨迹数组
+          boundaryAngle: res.boundaryAngle, // 最大角度
+          borderRound: res.borderRound, // 边界圆
+          score: res.score, // 综合得分
+          scoreText: res.scoreText, // 评价
+          deflection: res.deflection // 偏向
         }
 
         /* 暂存至 sessionStorage */
@@ -479,6 +485,80 @@ export default {
           duration: JSON.stringify(300)
         }
       })
+    },
+
+    /**
+     * @description: 计算各种数值逻辑函数
+     */
+    calculate() {
+      /* 背景参考曲线 */
+      const boundaryAngle = parseFloat(
+        window.localStorage.getItem('boundaryAngle')
+      ) // 最大角度
+
+      const borderRound = setCircle(0, 0, boundaryAngle) // 边界圆
+
+      /* 计算综合得分和评价 */
+      const trackArray = this.trackArray
+
+      const yes = []
+      for (let i = 0; i < trackArray.length; i++) {
+        const x = trackArray[i][0]
+        const y = trackArray[i][1]
+        if (x >= -(boundaryAngle - 1) && x <= boundaryAngle - 1) {
+          if (
+            y >= -parseFloat((boundaryAngle / 8).toFixed(2)) &&
+            y <= parseFloat((boundaryAngle / 8).toFixed(2))
+          ) {
+            yes.push(1)
+          }
+        }
+      }
+      const score = parseInt(
+        ((yes.length / trackArray.length) * 100).toFixed(0)
+      )
+
+      let scoreText = ''
+      if (score < 40) {
+        scoreText = '差'
+      } else if (score >= 40 && score < 60) {
+        scoreText = '较差'
+      } else if (score >= 60 && score < 80) {
+        scoreText = '一般'
+      } else if (score >= 80 && score <= 100) {
+        scoreText = '优秀'
+      } else {
+        scoreText = '暂无评价'
+      }
+
+      /* 计算偏向 */
+      const left = [] // 左
+      const right = [] // 右
+      for (let i = 0; i < trackArray.length; i++) {
+        const x = trackArray[i][0]
+        if (x < 0) {
+          left.push(x)
+        } else if (x > 0) {
+          right.push(x)
+        }
+      }
+      let deflection = ''
+      if (left.length > right.length) {
+        deflection = '左'
+      } else if (left.length <= right.length) {
+        deflection = '右'
+      }
+
+      /* 返回结果 */
+      return {
+        boundaryAngle,
+        borderRound,
+
+        score,
+        scoreText,
+
+        deflection
+      }
     }
   }
 }

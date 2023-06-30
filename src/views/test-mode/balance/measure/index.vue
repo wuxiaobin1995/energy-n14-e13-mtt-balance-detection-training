@@ -1,7 +1,7 @@
 <!--
  * @Author      : Mr.bin
  * @Date        : 2023-06-19 21:59:05
- * @LastEditTime: 2023-06-20 09:34:59
+ * @LastEditTime: 2023-06-30 21:28:50
  * @Description : 平衡测试-具体测量
 -->
 <template>
@@ -401,12 +401,25 @@ export default {
       settings.shift()
       this.$store.dispatch('setSettings', settings).then(() => {
         /* 数据 */
+        const res = this.calculate()
         const obj = {
           pattern: '平衡测试',
           time: this.time, // 测试时长
           isVisual: this.isVisual, // 是否开启视觉反馈
           isBarycenter: this.isBarycenter, // 是否开启重心轨迹
-          trackArray: this.trackArray // 轨迹数组
+          trackArray: this.trackArray, // 轨迹数组
+          boundaryAngle: res.boundaryAngle, // 最大角度
+          borderRound: res.borderRound, // 边界圆
+          oneRound: res.oneRound, // 第一个圆
+          twoRound: res.twoRound, // 第二个圆
+          score: res.score, // 综合得分
+          scoreText: res.scoreText, // 评价
+          leftAverageAngle: res.leftAverageAngle, // 左平均偏移角度
+          rightAverageAngle: res.rightAverageAngle, // 右平均偏移角度
+          frontAverageAngle: res.frontAverageAngle, // 前平均偏移角度
+          backAverageAngle: res.backAverageAngle, // 后平均偏移角度
+          lr: res.lr, // 左右偏向
+          fb: res.fb // 前后偏向
         }
 
         /* 暂存至 sessionStorage */
@@ -492,6 +505,183 @@ export default {
           duration: JSON.stringify(300)
         }
       })
+    },
+
+    /**
+     * @description: 计算各种数值逻辑函数
+     */
+    calculate() {
+      /* 背景参考曲线 */
+      const boundaryAngle = parseFloat(
+        window.localStorage.getItem('boundaryAngle')
+      ) // 最大角度
+      const borderRound = setCircle(0, 0, boundaryAngle) // 边界圆
+      const oneRound = setCircle(
+        0,
+        0,
+        parseFloat((boundaryAngle / 4).toFixed(2))
+      ) // 第一个圆
+      const twoRound = setCircle(
+        0,
+        0,
+        parseFloat((boundaryAngle / 2).toFixed(2))
+      ) // 第二个圆
+
+      /* 计算综合得分和评价 */
+      const trackArray = this.trackArray
+
+      const oneArray = [] // 圈一内
+      const twoArray = [] // 圈二内、圈一外
+      const threeArray = [] // 圈二外
+      for (let i = 0; i < trackArray.length; i++) {
+        const x = trackArray[i][0]
+        const y = trackArray[i][1]
+        const r = parseFloat(
+          Math.sqrt(Math.abs(Math.pow(x, 2) + Math.pow(y, 2))).toFixed(2)
+        )
+        if (r >= 0 && r <= parseFloat((boundaryAngle / 4).toFixed(2))) {
+          oneArray.push(r)
+        } else if (
+          r > parseFloat((boundaryAngle / 4).toFixed(2)) &&
+          r <= parseFloat((boundaryAngle / 2).toFixed(2))
+        ) {
+          twoArray.push(r)
+        } else {
+          threeArray.push(r)
+        }
+      }
+      const score = parseInt(
+        (
+          ((oneArray.length * 10 +
+            twoArray.length * 5 +
+            threeArray.length * 0) /
+            (trackArray.length * 10)) *
+          100
+        ).toFixed(0)
+      )
+
+      let scoreText = ''
+      if (score < 40) {
+        scoreText = '差'
+      } else if (score >= 40 && score < 60) {
+        scoreText = '较差'
+      } else if (score >= 60 && score < 80) {
+        scoreText = '一般'
+      } else if (score >= 80 && score <= 100) {
+        scoreText = '优秀'
+      } else {
+        scoreText = '暂无评价'
+      }
+
+      const xLeft = [] // 左
+      const xRight = [] // 右
+      const yFront = [] // 前
+      const yBack = [] // 后
+      for (let i = 0; i < trackArray.length; i++) {
+        const x = trackArray[i][0]
+        const y = trackArray[i][1]
+        if (x < 0) {
+          xLeft.push(x)
+        } else if (x > 0) {
+          xRight.push(x)
+        }
+        if (y < 0) {
+          yBack.push(y)
+        } else if (y > 0) {
+          yFront.push(y)
+        }
+      }
+
+      /* 计算平均偏移角度 */
+      let leftAverageAngle = 0
+      if (xLeft.length) {
+        leftAverageAngle = Math.abs(
+          parseFloat(
+            (
+              xLeft.reduce((total, currentValue) => total + currentValue, 0) /
+              xLeft.length
+            ).toFixed(1)
+          )
+        )
+      } else {
+        leftAverageAngle = 0
+      }
+      let rightAverageAngle = 0
+      if (xRight.length) {
+        rightAverageAngle = Math.abs(
+          parseFloat(
+            (
+              xRight.reduce((total, currentValue) => total + currentValue, 0) /
+              xRight.length
+            ).toFixed(1)
+          )
+        )
+      } else {
+        rightAverageAngle = 0
+      }
+      let frontAverageAngle = 0
+      if (yFront.length) {
+        frontAverageAngle = Math.abs(
+          parseFloat(
+            (
+              yFront.reduce((total, currentValue) => total + currentValue, 0) /
+              yFront.length
+            ).toFixed(1)
+          )
+        )
+      } else {
+        frontAverageAngle = 0
+      }
+      let backAverageAngle = 0
+      if (yBack.length) {
+        backAverageAngle = Math.abs(
+          parseFloat(
+            (
+              yBack.reduce((total, currentValue) => total + currentValue, 0) /
+              yBack.length
+            ).toFixed(1)
+          )
+        )
+      } else {
+        backAverageAngle = 0
+      }
+
+      /* 计算偏向 */
+      let lr = ''
+      let fb = ''
+      if (leftAverageAngle > rightAverageAngle) {
+        lr = '左'
+      } else if (leftAverageAngle < rightAverageAngle) {
+        lr = '右'
+      } else {
+        lr = ''
+      }
+      if (backAverageAngle > frontAverageAngle) {
+        fb = '后'
+      } else if (backAverageAngle < frontAverageAngle) {
+        fb = '前'
+      } else {
+        fb = ''
+      }
+
+      /* 返回结果 */
+      return {
+        boundaryAngle,
+        borderRound,
+        oneRound,
+        twoRound,
+
+        score,
+        scoreText,
+
+        leftAverageAngle,
+        rightAverageAngle,
+        frontAverageAngle,
+        backAverageAngle,
+
+        lr,
+        fb
+      }
     }
   }
 }

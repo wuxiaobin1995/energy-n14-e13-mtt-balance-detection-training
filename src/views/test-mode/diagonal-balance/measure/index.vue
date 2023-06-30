@@ -1,7 +1,7 @@
 <!--
  * @Author      : Mr.bin
  * @Date        : 2023-06-20 11:44:14
- * @LastEditTime: 2023-06-20 11:47:47
+ * @LastEditTime: 2023-06-30 21:32:09
  * @Description : 对角线平衡测试-具体测量
 -->
 <template>
@@ -533,12 +533,18 @@ export default {
       settings.shift()
       this.$store.dispatch('setSettings', settings).then(() => {
         /* 数据 */
+        const res = this.calculate()
         const obj = {
           pattern: '对角线平衡测试',
           time: this.time, // 测试时长
           isVisual: this.isVisual, // 是否开启视觉反馈
           isBarycenter: this.isBarycenter, // 是否开启重心轨迹
-          trackArray: this.trackArray // 轨迹数组
+          trackArray: this.trackArray, // 轨迹数组
+          boundaryAngle: res.boundaryAngle, // 最大角度
+          borderRound: res.borderRound, // 边界圆
+          score: res.score, // 综合得分
+          scoreText: res.scoreText, // 评价
+          deflection: res.deflection // 偏向
         }
 
         /* 暂存至 sessionStorage */
@@ -624,6 +630,118 @@ export default {
           duration: JSON.stringify(300)
         }
       })
+    },
+
+    /**
+     * @description: 计算各种数值逻辑函数
+     */
+    calculate() {
+      /* 背景参考曲线 */
+      const boundaryAngle = parseFloat(
+        window.localStorage.getItem('boundaryAngle')
+      ) // 最大角度
+
+      const borderRound = setCircle(0, 0, boundaryAngle) // 边界圆
+
+      /* 计算综合得分和评价 */
+      const trackArray = this.trackArray
+
+      const yes = []
+      for (let i = 0; i < trackArray.length; i++) {
+        const x = trackArray[i][0]
+        const y = trackArray[i][1]
+        if (x > 0) {
+          if (y > 0) {
+            let y1up = x + parseFloat(((boundaryAngle / 8) * 1.414).toFixed(2))
+            let y1down =
+              x - parseFloat(((boundaryAngle / 8) * 1.414).toFixed(2))
+            if (y >= y1down && y <= y1up) {
+              yes.push(1)
+            }
+          } else if (y < 0) {
+            let y2up = -x + parseFloat(((boundaryAngle / 8) * 1.414).toFixed(2))
+            let y2down =
+              -x - parseFloat(((boundaryAngle / 8) * 1.414).toFixed(2))
+            if (y >= y2down && y <= y2up) {
+              yes.push(1)
+            }
+          }
+        } else if (x < 0) {
+          if (y > 0) {
+            let y3up = -x + parseFloat(((boundaryAngle / 8) * 1.414).toFixed(2))
+            let y3down =
+              -x - parseFloat(((boundaryAngle / 8) * 1.414).toFixed(2))
+            if (y >= y3down && y <= y3up) {
+              yes.push(1)
+            }
+          } else if (y < 0) {
+            let y4up = x + parseFloat(((boundaryAngle / 8) * 1.414).toFixed(2))
+            let y4down =
+              x - parseFloat(((boundaryAngle / 8) * 1.414).toFixed(2))
+            if (y >= y4down && y <= y4up) {
+              yes.push(1)
+            }
+          }
+        }
+      }
+      const score = parseInt(
+        ((yes.length / trackArray.length) * 100).toFixed(0)
+      )
+
+      let scoreText = ''
+      if (score < 40) {
+        scoreText = '差'
+      } else if (score >= 40 && score < 60) {
+        scoreText = '较差'
+      } else if (score >= 60 && score < 80) {
+        scoreText = '一般'
+      } else if (score >= 80 && score <= 100) {
+        scoreText = '优秀'
+      } else {
+        scoreText = '暂无评价'
+      }
+
+      /* 计算偏向 */
+      const left = [] // 左
+      const right = [] // 右
+      const front = [] // 前
+      const back = [] // 后
+      for (let i = 0; i < trackArray.length; i++) {
+        const x = trackArray[i][0]
+        const y = trackArray[i][1]
+        if (x < 0) {
+          left.push(x)
+        } else if (x > 0) {
+          right.push(x)
+        }
+        if (y < 0) {
+          back.push(y)
+        } else if (y > 0) {
+          front.push(y)
+        }
+      }
+      let deflection = ''
+      if (left.length > right.length) {
+        deflection = '左'
+      } else if (left.length <= right.length) {
+        deflection = '右'
+      }
+      if (front.length >= back.length) {
+        deflection = deflection + '前'
+      } else if (front.length < back.length) {
+        deflection = deflection + '后'
+      }
+
+      /* 返回结果 */
+      return {
+        boundaryAngle,
+        borderRound,
+
+        score,
+        scoreText,
+
+        deflection
+      }
     }
   }
 }
