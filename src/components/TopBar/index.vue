@@ -36,7 +36,7 @@
 
       <!-- 订单号 -->
       <div class="order-id">
-        <div class="item">订单号：{{ activeOrderId }}</div>
+        <div class="item">任务号：{{ activeOrderId }}</div>
       </div>
 
       <!-- 当前登录用户的姓名 -->

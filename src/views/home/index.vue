@@ -1,7 +1,7 @@
 <!--
  * @Author      : Mr.bin
  * @Date        : 2023-06-19 21:21:44
- * @LastEditTime: 2023-06-30 20:32:07
+ * @LastEditTime: 2024-01-08 15:04:55
  * @Description : home
 -->
 <template>
@@ -26,7 +26,7 @@
           ref="ruleForm"
           label-width="100px"
         >
-          <el-form-item label="单号" prop="orderId">
+          <el-form-item label="任务号" prop="orderId">
             <el-input v-model.number="mainForm.orderId"></el-input>
           </el-form-item>
 
